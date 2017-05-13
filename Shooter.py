@@ -34,8 +34,7 @@ def move_bullet(name):
                     canvas.delete(name)
                     load = 1
                     if len(enemies)==0:
-                        canvas.create_text(300,300,text='You won!', fill = 'white', font='Arial 30')
-                    
+                        canvas.create_text(300,300,text='You won!', fill = 'white', font='Arial 30', tag='text')    
                     
         if bc[1] < 0: 
             canvas.delete(name)
@@ -49,9 +48,9 @@ def press(event):
 
     c = canvas.coords('player')
 
-    if event.keysym == 'Left' and c[0] > 0:
+    if event.keysym == 'Left' and c[0] > 5:
         canvas.move("player", -20,0)
-    elif event.keysym == 'Right' and c[2] < 600:
+    elif event.keysym == 'Right' and c[2] < 560:
         canvas.move("player", 20, 0)
     elif event.keysym == 'space' and load == 1:
         shoot()
@@ -67,25 +66,49 @@ def create_enemy():
             enemies.append(enemy)
 
 def move_enemy():
-    canvas.move('enemy', 0, 20)
-    c =canvas.coords('player')
-    for i in enemies:
+    global restart_count
+    if restart_count == 0:
+        canvas.move('enemy', 0, 20)
+        c =canvas.coords('player')
+        for i in enemies:
 
-            ec = canvas.coords(i)
+                ec = canvas.coords(i)
 
-            if ec[3] >= c[1]:
-                canvas.delete('player')
-                canvas.create_text(300,300,text='You lost!', fill = 'black', font='Arial 30')
+                if ec[3] >= c[1]:
+                    canvas.delete('player')
+                    canvas.create_text(300,300,text='You lost!', fill = 'black', font='Arial 30', tag='text')
                 
-    window.after(1000, move_enemy)
+        window.after(1000, move_enemy)
 
+def restart():
+    global restart_count
+    restart_count = 1
+    for i in enemies:
+        canvas.delete(i)
+    enemies.clear()
+    canvas.delete('player')
+    canvas.delete('text')
+    canvas.create_rectangle(295,550,305,600,fill='white',outline='white',tag='player')
+    window.after(2000,restart_opt)
+    canvas.create_text(300,300,text='Loading...', fill = 'white', font='Arial 30', tag='loading')
+
+def restart_opt():
+    global restart_count
+    canvas.delete('loading')
+    restart_count = 0
+    create_enemy()
+    move_enemy()
 
 canvas.create_rectangle(295,550,305,600,fill='white',outline='white',tag='player')
 
 load = 1
 
+restart_count = 0
+
+window.bind_all('<Key>', press)
 create_enemy()
 move_enemy()
-window.bind_all('<Key>', press)
+but = Button(window, text='Try again', command = restart)
+but.place(x=260,y=0)
 
 window.mainloop()
